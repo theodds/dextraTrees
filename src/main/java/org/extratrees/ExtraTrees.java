@@ -172,9 +172,10 @@ public class ExtraTrees extends AbstractTrees<BinaryTree, Double> implements Ser
 			}
 		}
 		// calculating score:
-		cutResultFromSums(result, sumLeft, sumRight, 
+    // TONY changed to call the LogP version
+		cutResultFromSumsLogP(result, sumLeft, sumRight, 
 				sumSqLeft, sumSqRight, 
-				weightLeft, weightRight);
+				weightLeft, weightRight, col);
 		// value in intermediate nodes (used for CV):
 	}
 
@@ -190,6 +191,26 @@ public class ExtraTrees extends AbstractTrees<BinaryTree, Double> implements Ser
 	 * @param countNaN    NaN count
 	 * @param nanPenalty  penalty per NaN
 	 */
+  // TONY changed this
+  private void cutResultFromSumsLogP(CutResult result, double sumLeft,
+      double sumRight, double sumSqLeft, double sumSqRight, 
+      double countLeft, double countRight, int col) {
+
+    double varLeft  = sumSqLeft/countLeft  - 
+        (sumLeft/countLeft)*(sumLeft/countLeft);
+    double varRight = sumSqRight/countRight- 
+        (sumRight/countRight)*(sumRight/countRight);
+
+    double sseLeft = varLeft * countLeft;
+    double sseRight = varRight * countRight;
+    double shapeParam = 0.5 * (countLeft + countRight - 2.0);
+
+    result.score = 0.5 * Math.log(countLeft) + 0.5 * Math.log(countRight)
+        + shapeParam * Math.log(0.5 * (sseLeft + sseRight)) - logProbVec[col];
+    result.leftConst  = (varLeft<zero*zero);
+    result.rightConst = (varRight<zero*zero);
+  }
+
 	private void cutResultFromSums(CutResult result, double sumLeft,
 			double sumRight, double sumSqLeft, double sumSqRight, 
 			double countLeft, double countRight) {

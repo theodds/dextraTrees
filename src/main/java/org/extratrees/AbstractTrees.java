@@ -17,12 +17,13 @@ import org.extratrees.data.Matrix;
 import org.extratrees.data.Row;
 
 public abstract class AbstractTrees<E extends AbstractBinaryTree<E,D>, D> implements Serializable {
-	private static final long serialVersionUID = -7981888649599586067L;
+  private static final long serialVersionUID = -7981888649599586067L;
 	
 	transient Array2D input;
 	transient Random random = new Random();
 	transient Random[] treeRandoms = null;
 	transient double[] weights;
+  transient double[] logProbVec; // TONY
 	boolean useWeights;
 	boolean hasNaN = false;
 	transient int[] subsetSizes = null;
@@ -152,6 +153,11 @@ public abstract class AbstractTrees<E extends AbstractBinaryTree<E,D>, D> implem
 		this.weights = weights;
 		this.useWeights = (weights!=null);
 	}
+
+  // TONY
+  public void setLogProbVec(double[] logProbVec) {
+    this.logProbVec = logProbVec;
+  }
 	
 	/**
 	 * Sets subset size to subsetSize, so each tree is only built with subsetSize (randomly selected) samples.

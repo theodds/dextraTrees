@@ -87,14 +87,18 @@ prepareForSave <- function( object ) {
 extraTrees.default <- function(x, y, 
              #xtest=NULL, ytest=NULL, 
              ntree=500,
-             mtry = if (!is.null(y) && !is.factor(y))
-                    max(floor(ncol(x)/3), 1) else floor(sqrt(ncol(x))),
+             ## TONY
+             ## mtry = if (!is.null(y) && !is.factor(y))
+             ##        max(floor(ncol(x)/3), 1) else floor(sqrt(ncol(x))),
+             mtry = ncol(x),
              nodesize = if (!is.null(y) && !is.factor(y)) 5 else 1,
              numRandomCuts = 1,
              evenCuts = FALSE,
              numThreads = 1,
              quantile = F,
              weights = NULL,
+             ## TONY
+             probVec = NULL,
              subsetSizes = NULL,
              subsetGroups = NULL,
              tasks = NULL,
@@ -111,6 +115,10 @@ extraTrees.default <- function(x, y,
     x.row.names <- rownames(x)
     x.col.names <- if (is.null(colnames(x))) 1:ncol(x) else colnames(x)
     
+    ## TONY
+    if(is.null(probVec)) probVec <- rep(1/p,p)
+    logProbVec <- log(probVec)
+
     ## making sure no NAs:
     if ( any(is.na(y)) ) stop("Output vector y contains NAs.")
     if ( !is.null(tasks) && any(is.na(tasks)) ) stop("Task vector contains NAs.")
@@ -143,6 +151,8 @@ extraTrees.default <- function(x, y,
     et$numRandomTaskCuts = numRandomTaskCuts
     et$call <- match.call()
     et$call[[1]] <- as.name("extraTrees")
+    ## TONY
+    et$probVec <- probVec
     
     class(et) = "extraTrees"
 
@@ -255,6 +265,7 @@ extraTrees.default <- function(x, y,
     .jcall( et$jobject, "V", "setEvenCuts", et$evenCuts )
     .jcall( et$jobject, "V", "setNumThreads", as.integer(et$numThreads) )
     .jcall( et$jobject, "V", "setHasNaN", et$xHasNA)
+    .jcall( et$jobect, "V", "setLogProbVec", .jarray(as.double(logProbVec)))
     seeds = get64BitSeed()
     .jcall( et$jobject, "V", "setSeed", seeds[1], seeds[2])
     
